@@ -1,16 +1,36 @@
-"""Scraper stubs for travel sites using Playwright (Python).
+"""Scraper scaffolding for travel sites using Playwright (Python).
 
-Replace the stub functions with real Playwright async scrapers per site.
+Each scrape_* function should aggregate results across ~20 sites (config.TOP_SITES).
+Current implementation returns sample data; replace with real Playwright flows.
 """
-from typing import List, Dict, Any, Callable
+from typing import List, Dict, Any, Callable, Awaitable
 
 from . import config
 
+try:
+    from playwright.async_api import async_playwright  # type: ignore
+except Exception:  # pragma: no cover - optional dependency at runtime
+    async_playwright = None
 
-# Registry of per-site handlers; each returns a list of result dicts.
-RouteScraper = Callable[[str, str, str | None], Any]
-StayScraper = Callable[[str], Any]
-ActivityScraper = Callable[[str], Any]
+
+RouteScraper = Callable[[str, str, str | None], Awaitable[List[Dict[str, Any]]]]
+StayScraper = Callable[[str], Awaitable[List[Dict[str, Any]]]]
+ActivityScraper = Callable[[str], Awaitable[List[Dict[str, Any]]]]
+
+
+async def _fetch_with_playwright(url: str, wait_selector: str | None = None) -> str:
+    """Fetch a page and return HTML. Replace selectors/flows per site."""
+    if not async_playwright:
+        return ""
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True)
+        page = await browser.new_page(extra_http_headers=config.DEFAULT_HEADERS)
+        await page.goto(url, timeout=config.REQUEST_TIMEOUT * 1000)
+        if wait_selector:
+            await page.wait_for_selector(wait_selector, timeout=config.REQUEST_TIMEOUT * 1000)
+        content = await page.content()
+        await browser.close()
+        return content
 
 
 async def scrape_routes(origin: str, destination: str, date: str | None = None) -> List[Dict[str, Any]]:
