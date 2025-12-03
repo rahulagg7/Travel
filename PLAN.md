@@ -1,0 +1,11 @@
+# Journey Plan
+- Origin: ____________________
+- Destination: ____________________
+- Data source notes: scrape top ~20 travel and activity sites (Makemytrip, Cleartrip, TripAdvisor, OTAs/meta/activity portals) to gather routes, fares, options, and highlights (until official APIs exist).
+- Minimal input: start/end + date; agent should fill gaps and only ask for essentials.
+- Departure plan: transport, date/time, tickets/visa
+- Arrival & transfer: airport/station to accommodation, check-in window
+- Daily outline: day-by-day highlights, buffers, meals
+- Local transport: passes/tickets needed, ride-share, parking
+- Return plan: checkout, transfer back, departure buffer
+- Notes: constraints, accessibility, backup options

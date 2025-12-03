@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Journey Planner Agent</title>
+  <style>
+    :root {
+      --bg: #070f1c;
+      --panel: #0e2238;
+      --highlight: #25d0a0;
+      --muted: #97b2d2;
+      --border: rgba(255, 255, 255, 0.08);
+      --shadow: 0 18px 50px rgba(0, 0, 0, 0.4);
+      --radius: 18px;
+      font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+      color: #e9f2ff;
+      background: radial-gradient(circle at 20% 10%, rgba(37, 208, 160, 0.18), transparent 32%),
+        radial-gradient(circle at 70% 0%, rgba(79, 149, 255, 0.18), transparent 34%),
+        linear-gradient(135deg, #050b17, #08162a 45%, #061229);
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: #e9f2ff; min-height: 100vh; }
+    .page { max-width: 1100px; margin: 0 auto; padding: 32px 20px 72px; }
+
+    header h1 { margin: 0; font-size: 32px; letter-spacing: -0.02em; }
+    header p { margin: 10px 0 24px; color: var(--muted); }
+
+    .panel {
+      background: linear-gradient(145deg, rgba(14, 34, 56, 0.92), rgba(11, 28, 49, 0.92));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 18px 16px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+
+    .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+
+    .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+    label { font-weight: 600; }
+    input, textarea, select {
+      width: 100%; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border);
+      background: #0b1c30; color: #e9f2ff; font-size: 14px; outline: none;
+      transition: border 0.15s ease, box-shadow 0.15s ease;
+    }
+    input:focus, textarea:focus, select:focus { border-color: var(--highlight); box-shadow: 0 0 0 3px rgba(37, 208, 160, 0.16); }
+    textarea { min-height: 80px; resize: vertical; }
+
+    button {
+      background: linear-gradient(120deg, #25d0a0, #3be6b8);
+      color: #04101d;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+      box-shadow: 0 10px 30px rgba(37, 208, 160, 0.35);
+      transition: transform 0.1s ease, box-shadow 0.15s ease;
+    }
+    button:hover { transform: translateY(-1px); box-shadow: 0 14px 34px rgba(37, 208, 160, 0.42); }
+    button:active { transform: translateY(0); }
+
+    .plan-output { display: grid; gap: 12px; }
+    .item { background: #0b1c30; border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; }
+    .item h3 { margin: 0 0 6px; font-size: 16px; }
+    .item p { margin: 0; color: var(--muted); line-height: 1.55; }
+    .note { color: var(--muted); font-size: 13px; margin-top: 8px; }
+
+    .rec-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); margin-top: 14px; }
+    .rec { border: 1px solid var(--border); border-radius: 12px; padding: 12px; background: #0b1c30; }
+    .rec h3 { margin: 0 0 6px; font-size: 15px; }
+    .rec .pill { display: inline-block; padding: 4px 8px; border-radius: 10px; background: rgba(37, 208, 160, 0.16); border: 1px solid rgba(37, 208, 160, 0.3); font-size: 12px; }
+    .total { font-size: 20px; font-weight: 700; margin-top: 4px; }
+    .error { color: #fca5a5; margin-top: 8px; font-size: 13px; }
+
+    @media (max-width: 620px) { header h1 { font-size: 26px; } }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <h1>Journey Planner Agent</h1>
+      <p>Enter origin and destination (minimal inputs). Agent will fill gaps and plan using scraped data from top travel/activity sites once wired.</p>
+    </header>
+
+    <div class="grid">
+      <section class="panel">
+        <div class="field">
+          <label for="origin">Start</label>
+          <input id="origin" placeholder="e.g., Mumbai" />
+        </div>
+        <div class="field">
+          <label for="destination">Destination</label>
+          <input id="destination" placeholder="e.g., Goa" />
+        </div>
+        <div class="field">
+          <label for="date">Preferred departure date</label>
+          <input id="date" type="date" />
+        </div>
+        <div class="field">
+          <label for="notes">Notes (preferences, constraints)</label>
+          <textarea id="notes" placeholder="Direct routes only, budget friendly stays, etc."></textarea>
+        </div>
+        <button id="plan-btn">Plan journey</button>
+        <div class="note">Agent is mocked locally; replace with scraping pipeline (Makemytrip/Cleartrip/TripAdvisor + ~17 others) plus LLM that asks only essentials.</div>
+        <div id="error" class="error"></div>
+      </section>
+
+      <section class="panel">
+        <h2 style="margin-top:0;">Journey Plan</h2>
+        <div id="plan" class="plan-output"></div>
+      </section>
+    </div>
+
+    <section class="panel" style="margin-top:16px;">
+      <h2 style="margin-top:0;">Recommendations (from top travel sites)</h2>
+      <div id="recs" class="rec-grid"></div>
+      <div class="note">Mock data shown. Backend scraper should aggregate ~20 sources (OTAs/meta/activity sites) to populate picks, prices, and totals.</div>
+    </section>
+  </main>
+
+  <script>
+    const planEl = document.getElementById('plan');
+    const originEl = document.getElementById('origin');
+    const destEl = document.getElementById('destination');
+    const dateEl = document.getElementById('date');
+    const notesEl = document.getElementById('notes');
+    const recsEl = document.getElementById('recs');
+    const errorEl = document.getElementById('error');
+
+    const renderPlan = (planItems) => {
+      planEl.innerHTML = '';
+      planItems.forEach((item) => {
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.innerHTML = `<h3>${item.title}</h3><p>${item.body}</p>`;
+        planEl.appendChild(div);
+      });
+    };
+
+    const renderRecs = (recData) => {
+      recsEl.innerHTML = '';
+      if (!recData) return;
+      const activityTotal = (recData.activities || []).reduce((sum, a) => sum + (a.price || 0), 0);
+      const total = (recData.accommodation_price || 0) + (recData.transport_price || 0) + activityTotal;
+
+      const cards = [
+        `<div class="rec"><h3>Accommodation</h3><div class="pill">${recData.accommodation || 'TBD'}</div><p class="note">${recData.sources_used?.join(', ') || ''}</p><div class="total">$${recData.accommodation_price || 0}</div></div>`,
+        `<div class="rec"><h3>Transport</h3><div class="pill">${recData.transport || 'TBD'}</div><p class="note">${recData.sources_used?.join(', ') || ''}</p><div class="total">$${recData.transport_price || 0}</div></div>`,
+        `<div class="rec"><h3>Activities</h3><div class="pill">${(recData.activities || []).map(a => a.name).join(', ') || 'TBD'}</div><div class="total">$${activityTotal}</div></div>`,
+        `<div class="rec"><h3>Total Trip Estimate</h3><p class="note">Scraped picks aggregated from top sites</p><div class="total">$${recData.total_estimate || total}</div></div>`,
+      ];
+      recsEl.innerHTML = cards.join('');
+    };
+
+    const buildPlanCards = (origin, destination, notes, date) => ([
+      { title: `${origin} -> ${destination}`, body: `${date ? 'Departing ' + date : 'Date flexible'}. Notes: ${notes || 'No extra constraints provided.'}` },
+      { title: 'Scrape routes', body: 'Scrape Makemytrip/Cleartrip/etc for flights, trains, buses; TripAdvisor and others for popular options; pick best price/time mix.' },
+      { title: 'Book & prep', body: 'Lock tickets, save PNR/booking refs. Arrange local SIM/roaming; download offline maps.' },
+      { title: 'Arrival & transfer', body: 'Plan airport/station transfer to stay. Hold backup ride option; share ETA with host.' },
+      { title: 'Stay & daily flow', body: 'Check in, drop bags, light meal. Build a day-by-day outline with 2-3 anchors and buffer time using TripAdvisor highlights.' },
+      { title: 'Return', body: 'Checkout buffer, transfer back to origin hub, carry digital tickets offline.' },
+    ]);
+
+    const callPlanApi = async () => {
+      errorEl.textContent = '';
+      const origin = originEl.value.trim();
+      const destination = destEl.value.trim();
+      const date = dateEl.value || null;
+      const notes = notesEl.value.trim();
+
+      if (!origin || !destination) {
+        errorEl.textContent = 'Origin and destination are required.';
+        return;
+      }
+
+      renderPlan(buildPlanCards(origin, destination, notes, date));
+      recsEl.innerHTML = '<div class="note">Fetching plan...</div>';
+
+      try {
+        const resp = await fetch('http://localhost:8000/plan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ origin, destination, date, notes }),
+        });
+        if (!resp.ok) throw new Error(`API error ${resp.status}`);
+        const data = await resp.json();
+        renderRecs(data);
+      } catch (err) {
+        errorEl.textContent = 'Failed to fetch plan. Start backend at http://localhost:8000.';
+        recsEl.innerHTML = '';
+      }
+    };
+
+    document.getElementById('plan-btn').addEventListener('click', callPlanApi);
+    renderPlan([{ title: 'Awaiting input', body: 'Add start and end points, then plan the journey.' }]);
+  </script>
+</body>
+</html>

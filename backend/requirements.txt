@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+pydantic
+sqlalchemy
+sqlmodel
+redis
+playwright
+celery
+rq
+langchain
