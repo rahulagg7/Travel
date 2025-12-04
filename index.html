@@ -141,17 +141,21 @@
       });
     };
 
+    const usdToInr = (value) => Math.round((value || 0) * 90);
+
     const renderRecs = (recData) => {
       recsEl.innerHTML = '';
       if (!recData) return;
-      const activityTotal = (recData.activities || []).reduce((sum, a) => sum + (a.price || 0), 0);
-      const total = (recData.accommodation_price || 0) + (recData.transport_price || 0) + activityTotal;
+      const activityTotalUsd = (recData.activities || []).reduce((sum, a) => sum + (a.price || 0), 0);
+      const totalUsd = (recData.accommodation_price || 0) + (recData.transport_price || 0) + activityTotalUsd;
+      const activityTotalInr = usdToInr(activityTotalUsd);
+      const totalInr = usdToInr(recData.total_estimate || totalUsd);
 
       const cards = [
-        `<div class="rec"><h3>Accommodation</h3><div class="pill">${recData.accommodation || 'TBD'}</div><p class="note">${recData.sources_used?.join(', ') || ''}</p><div class="total">$${recData.accommodation_price || 0}</div></div>`,
-        `<div class="rec"><h3>Transport</h3><div class="pill">${recData.transport || 'TBD'}</div><p class="note">${recData.sources_used?.join(', ') || ''}</p><div class="total">$${recData.transport_price || 0}</div></div>`,
-        `<div class="rec"><h3>Activities</h3><div class="pill">${(recData.activities || []).map(a => a.name).join(', ') || 'TBD'}</div><div class="total">$${activityTotal}</div></div>`,
-        `<div class="rec"><h3>Total Trip Estimate</h3><p class="note">Scraped picks aggregated from top sites</p><div class="total">$${recData.total_estimate || total}</div></div>`,
+        `<div class="rec"><h3>Accommodation</h3><div class="pill">${recData.accommodation || 'TBD'}</div><p class="note">${recData.sources_used?.join(', ') || ''}</p><div class="total">INR ${usdToInr(recData.accommodation_price)}</div></div>`,
+        `<div class="rec"><h3>Transport</h3><div class="pill">${recData.transport || 'TBD'}</div><p class="note">${recData.sources_used?.join(', ') || ''}</p><div class="total">INR ${usdToInr(recData.transport_price)}</div></div>`,
+        `<div class="rec"><h3>Activities</h3><div class="pill">${(recData.activities || []).map(a => a.name).join(', ') || 'TBD'}</div><div class="total">INR ${activityTotalInr}</div></div>`,
+        `<div class="rec"><h3>Total Trip Estimate</h3><p class="note">Scraped picks aggregated from top sites</p><div class="total">INR ${totalInr}</div></div>`,
       ];
       recsEl.innerHTML = cards.join('');
     };
