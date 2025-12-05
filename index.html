@@ -76,6 +76,31 @@
     .total { font-size: 20px; font-weight: 700; margin-top: 4px; }
     .error { color: #fca5a5; margin-top: 8px; font-size: 13px; }
 
+    .constraint-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+    .constraint-row label { font-weight: 500; display: flex; align-items: center; gap: 6px; }
+
+    .chat { display: flex; flex-direction: column; gap: 12px; }
+    .chat-log { background: #0b1c30; border: 1px solid var(--border); border-radius: 12px; padding: 12px; min-height: 220px; max-height: 360px; overflow: auto; }
+    .bubble { margin: 6px 0; padding: 10px 12px; border-radius: 12px; max-width: 90%; line-height: 1.5; }
+    .bubble.agent { background: rgba(37, 208, 160, 0.08); border: 1px solid rgba(37, 208, 160, 0.25); }
+    .bubble.user { background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.1); margin-left: auto; }
+    .chat-input { display: flex; gap: 10px; }
+    .chat-input textarea { min-height: 42px; resize: none; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 0; }
+    .chip { background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border); padding: 6px 10px; border-radius: 999px; font-size: 12px; }
+
+    .quick-replies { display: flex; flex-wrap: wrap; gap: 8px; }
+    .quick-replies button { background: rgba(255, 255, 255, 0.08); color: #e9f2ff; border: 1px solid var(--border); padding: 6px 10px; border-radius: 10px; cursor: pointer; width: auto; box-shadow: none; }
+    .quick-replies button:hover { border-color: var(--highlight); color: #25d0a0; }
+
+    .options-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin-top: 12px; }
+    .option-card { background: #0b1c30; border: 1px solid var(--border); border-radius: 12px; padding: 12px; }
+    .option-card h3 { margin: 0 0 6px; }
+    .option-meta { display: flex; gap: 8px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+
+    .export-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+    .export-actions button { width: auto; padding: 10px 12px; }
+
     @media (max-width: 620px) { header h1 { font-size: 26px; } }
   </style>
 </head>
@@ -83,11 +108,21 @@
   <main class="page">
     <header>
       <h1>Journey Planner Agent</h1>
-      <p>Enter origin and destination (minimal inputs). Agent will fill gaps and plan using scraped data from top travel/activity sites once wired.</p>
+      <p>Enter origin, destination, and traveler basics. Agent will fill gaps and plan using scraped data from top travel/activity sites once wired.</p>
     </header>
 
     <div class="grid">
       <section class="panel">
+        <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+          <div class="field">
+            <label for="name">Name</label>
+            <input id="name" placeholder="Full name" />
+          </div>
+          <div class="field">
+            <label for="age">Age</label>
+            <input id="age" type="number" min="0" placeholder="e.g., 32" />
+          </div>
+        </div>
         <div class="field">
           <label for="origin">Start</label>
           <input id="origin" placeholder="e.g., Mumbai" />
@@ -96,17 +131,66 @@
           <label for="destination">Destination</label>
           <input id="destination" placeholder="e.g., Goa" />
         </div>
-        <div class="field">
-          <label for="date">Preferred departure date</label>
-          <input id="date" type="date" />
+        <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+          <div class="field">
+            <label for="depart">Departure date</label>
+            <input id="depart" type="date" />
+          </div>
+          <div class="field">
+            <label for="return">Arrival/return date</label>
+            <input id="return" type="date" />
+          </div>
+        </div>
+        <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+          <div class="field">
+            <label for="total">Total travelers</label>
+            <input id="total" type="number" min="1" placeholder="e.g., 3" />
+          </div>
+          <div class="field">
+            <label for="adults">Adults</label>
+            <input id="adults" type="number" min="0" placeholder="e.g., 2" />
+          </div>
+          <div class="field">
+            <label for="children">Children</label>
+            <input id="children" type="number" min="0" placeholder="e.g., 1" />
+          </div>
         </div>
         <div class="field">
           <label for="notes">Notes (preferences, constraints)</label>
           <textarea id="notes" placeholder="Direct routes only, budget friendly stays, etc."></textarea>
         </div>
+        <div class="field">
+          <label>Budget target (overall)</label>
+          <div style="display:flex; gap:10px; align-items:center;">
+            <input id="budget-min" type="number" min="0" placeholder="Min" style="max-width:120px;" />
+            <input id="budget-max" type="number" min="0" placeholder="Max" style="max-width:120px;" />
+            <input id="budget-slider" type="range" min="500" max="10000" step="100" value="5000" style="flex:1;" />
+            <span id="budget-label" style="width:90px;">INR 5000</span>
+          </div>
+        </div>
+        <div class="constraint-row">
+          <label><input type="checkbox" id="c-nights" /> No night arrivals</label>
+          <label><input type="checkbox" id="c-layover" /> Max 1 layover</label>
+          <label><input type="checkbox" id="c-visa" /> Visa-free only</label>
+          <label><input type="checkbox" id="c-direct" /> Non-stop only</label>
+          <label><input type="checkbox" id="c-access" /> Accessibility priority</label>
+        </div>
         <button id="plan-btn">Plan journey</button>
         <div class="note">Agent is mocked locally; replace with scraping pipeline (Makemytrip/Cleartrip/TripAdvisor + ~17 others) plus LLM that asks only essentials.</div>
         <div id="error" class="error"></div>
+      </section>
+
+      <section class="panel">
+        <h2 style="margin-top:0;">Chat with the agent</h2>
+        <div class="chat">
+          <div id="chips" class="chips"></div>
+          <div id="chat-log" class="chat-log"></div>
+          <div id="quick-replies" class="quick-replies"></div>
+          <div class="chat-input">
+            <textarea id="chat-input" placeholder="Type your answer..."></textarea>
+            <button id="send-btn" style="width:140px;">Send</button>
+          </div>
+        </div>
       </section>
 
       <section class="panel">
@@ -116,20 +200,104 @@
     </div>
 
     <section class="panel" style="margin-top:16px;">
+      <h2 style="margin-top:0;">Itinerary Options (mocked)</h2>
+      <div id="options" class="options-grid"></div>
+      <div class="note">Shows cheapest / fastest / balanced options and constraint hints. Replace with real routing + scoring.</div>
+    </section>
+
+    <section class="panel" style="margin-top:16px;">
       <h2 style="margin-top:0;">Recommendations (from top travel sites)</h2>
       <div id="recs" class="rec-grid"></div>
       <div class="note">Mock data shown. Backend scraper should aggregate ~20 sources (OTAs/meta/activity sites) to populate picks, prices, and totals.</div>
+    </section>
+
+    <section class="panel" style="margin-top:16px;">
+      <h2 style="margin-top:0;">Export & Share</h2>
+      <div class="export-actions">
+        <button id="pdf-btn">Download PDF summary</button>
+        <button id="ics-btn">Add to calendar (ICS)</button>
+        <button id="link-btn">Copy shareable link</button>
+      </div>
+      <div id="export-status" class="note"></div>
     </section>
   </main>
 
   <script>
     const planEl = document.getElementById('plan');
+    const nameEl = document.getElementById('name');
+    const ageEl = document.getElementById('age');
     const originEl = document.getElementById('origin');
     const destEl = document.getElementById('destination');
-    const dateEl = document.getElementById('date');
+    const departEl = document.getElementById('depart');
+    const returnEl = document.getElementById('return');
+    const totalEl = document.getElementById('total');
+    const adultsEl = document.getElementById('adults');
+    const childrenEl = document.getElementById('children');
     const notesEl = document.getElementById('notes');
     const recsEl = document.getElementById('recs');
     const errorEl = document.getElementById('error');
+    const chatLogEl = document.getElementById('chat-log');
+    const chatInputEl = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('send-btn');
+    const chipsEl = document.getElementById('chips');
+    const quickRepliesEl = document.getElementById('quick-replies');
+    const budgetSliderEl = document.getElementById('budget-slider');
+    const budgetLabelEl = document.getElementById('budget-label');
+    const budgetMinEl = document.getElementById('budget-min');
+    const budgetMaxEl = document.getElementById('budget-max');
+    const optionsEl = document.getElementById('options');
+    const exportStatusEl = document.getElementById('export-status');
+    const pdfBtn = document.getElementById('pdf-btn');
+    const icsBtn = document.getElementById('ics-btn');
+    const linkBtn = document.getElementById('link-btn');
+    const constraintBoxes = {
+      night: document.getElementById('c-nights'),
+      layover: document.getElementById('c-layover'),
+      visa: document.getElementById('c-visa'),
+      direct: document.getElementById('c-direct'),
+      access: document.getElementById('c-access'),
+    };
+
+    const context = {
+      name: '',
+      age: null,
+      origin: '',
+      destination: '',
+      depart: null,
+      return: null,
+      total: null,
+      adults: null,
+      children: null,
+      budgetMin: '',
+      budgetMax: '',
+      accommodation: '',
+      transport: '',
+      activities: '',
+      notes: '',
+      constraints: {
+        night: false,
+        layover: false,
+        visa: false,
+        direct: false,
+        access: false,
+      },
+    };
+
+    const questionOrder = [
+      { key: 'origin', prompt: 'What is your start location?' },
+      { key: 'destination', prompt: 'What is your destination?' },
+      { key: 'depart', prompt: 'Departure date? (YYYY-MM-DD)' },
+      { key: 'return', prompt: 'Return/arrival date? (YYYY-MM-DD or say one-way)' },
+      { key: 'total', prompt: 'How many travelers in total?' },
+      { key: 'adults', prompt: 'How many adults?' },
+      { key: 'children', prompt: 'How many children? (list ages if any)' },
+      { key: 'budgetMin', prompt: 'Budget minimum?' },
+      { key: 'budgetMax', prompt: 'Budget maximum?' },
+      { key: 'accommodation', prompt: 'Preferred stay type? (hotel/hostel/airbnb/etc)' },
+      { key: 'transport', prompt: 'Preferred transport? (flight/train/bus/car)' },
+      { key: 'activities', prompt: 'Top activities or interests?' },
+      { key: 'notes', prompt: 'Any constraints? (non-stop, accessibility, visas, etc.)' },
+    ];
 
     const renderPlan = (planItems) => {
       planEl.innerHTML = '';
@@ -150,18 +318,20 @@
       const totalUsd = (recData.accommodation_price || 0) + (recData.transport_price || 0) + activityTotalUsd;
       const activityTotalInr = usdToInr(activityTotalUsd);
       const totalInr = usdToInr(recData.total_estimate || totalUsd);
+      const provenance = recData.sources_used?.join(', ') || 'Makemytrip / Cleartrip / TripAdvisor / +17';
+      const freshness = recData.last_updated || 'Synced recently (mock)';
 
       const cards = [
-        `<div class="rec"><h3>Accommodation</h3><div class="pill">${recData.accommodation || 'TBD'}</div><p class="note">${recData.sources_used?.join(', ') || ''}</p><div class="total">INR ${usdToInr(recData.accommodation_price)}</div></div>`,
-        `<div class="rec"><h3>Transport</h3><div class="pill">${recData.transport || 'TBD'}</div><p class="note">${recData.sources_used?.join(', ') || ''}</p><div class="total">INR ${usdToInr(recData.transport_price)}</div></div>`,
-        `<div class="rec"><h3>Activities</h3><div class="pill">${(recData.activities || []).map(a => a.name).join(', ') || 'TBD'}</div><div class="total">INR ${activityTotalInr}</div></div>`,
-        `<div class="rec"><h3>Total Trip Estimate</h3><p class="note">Scraped picks aggregated from top sites</p><div class="total">INR ${totalInr}</div></div>`,
+        `<div class="rec"><h3>Accommodation</h3><div class="pill">${recData.accommodation || 'TBD'}</div><p class="note">${provenance}</p><p class="note">Freshness: ${freshness}</p><div class="total">INR ${usdToInr(recData.accommodation_price)}</div></div>`,
+        `<div class="rec"><h3>Transport</h3><div class="pill">${recData.transport || 'TBD'}</div><p class="note">${provenance}</p><p class="note">Freshness: ${freshness}</p><div class="total">INR ${usdToInr(recData.transport_price)}</div></div>`,
+        `<div class="rec"><h3>Activities</h3><div class="pill">${(recData.activities || []).map(a => a.name).join(', ') || 'TBD'}</div><p class="note">Freshness: ${freshness}</p><div class="total">INR ${activityTotalInr}</div></div>`,
+        `<div class="rec"><h3>Total Trip Estimate</h3><p class="note">Scraped picks aggregated from top sites</p><p class="note">${provenance}</p><div class="total">INR ${totalInr}</div></div>`,
       ];
       recsEl.innerHTML = cards.join('');
     };
 
-    const buildPlanCards = (origin, destination, notes, date) => ([
-      { title: `${origin} -> ${destination}`, body: `${date ? 'Departing ' + date : 'Date flexible'}. Notes: ${notes || 'No extra constraints provided.'}` },
+    const buildPlanCards = (origin, destination, notes, depart, ret, travelerText) => ([
+      { title: `${origin} -> ${destination}`, body: `${depart ? 'Departing ' + depart : 'Date flexible'}${ret ? ' | Return ' + ret : ''}. ${travelerText}. Notes: ${notes || 'No extra constraints provided.'}` },
       { title: 'Scrape routes', body: 'Scrape Makemytrip/Cleartrip/etc for flights, trains, buses; TripAdvisor and others for popular options; pick best price/time mix.' },
       { title: 'Book & prep', body: 'Lock tickets, save PNR/booking refs. Arrange local SIM/roaming; download offline maps.' },
       { title: 'Arrival & transfer', body: 'Plan airport/station transfer to stay. Hold backup ride option; share ETA with host.' },
@@ -169,38 +339,362 @@
       { title: 'Return', body: 'Checkout buffer, transfer back to origin hub, carry digital tickets offline.' },
     ]);
 
-    const callPlanApi = async () => {
-      errorEl.textContent = '';
-      const origin = originEl.value.trim();
-      const destination = destEl.value.trim();
-      const date = dateEl.value || null;
-      const notes = notesEl.value.trim();
+    const constraintsSummary = () => {
+      const on = Object.entries(context.constraints).filter(([, v]) => v).map(([k]) => {
+        if (k === 'night') return 'Avoid night arrivals';
+        if (k === 'layover') return 'Max 1 layover';
+        if (k === 'visa') return 'Visa-free only';
+        if (k === 'direct') return 'Non-stop only';
+        if (k === 'access') return 'Accessibility prioritized';
+        return '';
+      }).filter(Boolean);
+      return on.length ? `Constraints: ${on.join(', ')}` : '';
+    };
 
-      if (!origin || !destination) {
-        errorEl.textContent = 'Origin and destination are required.';
+    const buildOptions = () => {
+      if (!context.origin || !context.destination) return [];
+      const base = Math.max(Number(context.budgetMin) || 600, 400);
+      const ceiling = Math.max(Number(context.budgetMax) || base + 800, base + 400);
+      const constraints = constraintsSummary();
+      return [
+        {
+          name: 'Cheapest',
+          price: `INR ${Math.round(base * 82)}`,
+          time: 'Longer (1 stop / bus/train mix)',
+          picks: ['Budget stay', 'Shared transport', 'Free local sights'],
+          note: 'Optimized for cost; flexible on timing.',
+          reliability: 'Data: Makemytrip, Cleartrip, TripAdvisor (last synced: mock)',
+          constraints,
+        },
+        {
+          name: 'Balanced',
+          price: `INR ${Math.round(((base + ceiling) / 2) * 82)}`,
+          time: 'Direct or 1 stop',
+          picks: ['Mid-tier hotel', 'Fastest-value flight/train', '2-3 activities/day'],
+          note: 'Balances time and comfort.',
+          reliability: 'Data: OTA + activity blends (last synced: mock)',
+          constraints,
+        },
+        {
+          name: 'Fastest',
+          price: `INR ${Math.round(ceiling * 82)}`,
+          time: 'Fastest direct',
+          picks: ['Direct transport', 'Central hotel', 'Priority transfers'],
+          note: 'Optimized for speed; higher cost.',
+          reliability: 'Data: fastest routes (last synced: mock)',
+          constraints,
+        },
+      ];
+    };
+
+    const renderOptions = () => {
+      const data = buildOptions();
+      optionsEl.innerHTML = data.map(opt => `
+        <div class="option-card">
+          <h3>${opt.name}</h3>
+          <div class="option-meta">
+            <span>${opt.price}</span>
+            <span>${opt.time}</span>
+          </div>
+          <p class="note">${opt.note}</p>
+          <p><strong>Picks:</strong> ${opt.picks.join(', ')}</p>
+          ${opt.constraints ? `<p class="note">${opt.constraints}</p>` : ''}
+          <p class="note">${opt.reliability}</p>
+        </div>
+      `).join('') || '<div class="note">Add origin/destination to see options.</div>';
+    };
+
+    const renderChips = () => {
+      const pairs = [
+        ['From', context.origin],
+        ['To', context.destination],
+        ['Depart', context.depart],
+        ['Return', context.return],
+        ['Travelers', context.total],
+        ['Adults', context.adults],
+        ['Children', context.children],
+        ['Budget', context.budgetMin && context.budgetMax ? `${context.budgetMin}-${context.budgetMax}` : ''],
+        ['Stay', context.accommodation],
+        ['Transport', context.transport],
+        ['Constraints', constraintsSummary().replace('Constraints: ', '')],
+      ];
+      chipsEl.innerHTML = pairs.filter(([, v]) => v || v === 0).map(([k, v]) => `<span class="chip">${k}: ${v}</span>`).join('');
+    };
+
+    const nextQuestion = () => {
+      for (const item of questionOrder) {
+        const val = context[item.key];
+        if (val === null || val === undefined || val === '' || Number.isNaN(val)) {
+          return item.prompt;
+        }
+      }
+      return null;
+    };
+
+    const quickReplySets = {
+      origin: ['Home', 'Office'],
+      destination: ['Goa', 'Jaipur', 'Bangkok'],
+      depart: ['Next weekend', 'Next month 1st', 'Flexible'],
+      return: ['3 days later', '7 days later', 'One-way'],
+      total: ['1', '2', '4'],
+      adults: ['1', '2'],
+      children: ['0', '1 (6y)'],
+      budgetMin: ['10000', '25000'],
+      budgetMax: ['20000', '50000'],
+      accommodation: ['Hotel', 'Hostel', 'Airbnb'],
+      transport: ['Flight', 'Train', 'Bus'],
+      activities: ['Food & markets', 'Museums', 'Beaches', 'Hiking'],
+      notes: ['Non-stop only', 'Accessibility needed', 'Light schedule'],
+    };
+
+    const renderQuickReplies = () => {
+      const q = questionOrder.find(item => {
+        const val = context[item.key];
+        return val === null || val === undefined || val === '' || Number.isNaN(val);
+      });
+      if (!q) { quickRepliesEl.innerHTML = ''; return; }
+      const set = quickReplySets[q.key] || [];
+      quickRepliesEl.innerHTML = set.map(val => `<button data-value="${val}">${val}</button>`).join('');
+      quickRepliesEl.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          chatInputEl.value = btn.dataset.value;
+          handleChat();
+        });
+      });
+    };
+
+    const syncContextFromForm = () => {
+      context.name = nameEl.value.trim();
+      context.age = ageEl.value ? Number(ageEl.value) : null;
+      context.origin = originEl.value.trim();
+      context.destination = destEl.value.trim();
+      context.depart = departEl.value || null;
+      context.return = returnEl.value || null;
+      context.total = totalEl.value ? Number(totalEl.value) : null;
+      context.adults = adultsEl.value ? Number(adultsEl.value) : null;
+      context.children = childrenEl.value ? Number(childrenEl.value) : null;
+      context.notes = notesEl.value.trim();
+      context.budgetMin = budgetMinEl.value;
+      context.budgetMax = budgetMaxEl.value;
+      Object.entries(constraintBoxes).forEach(([key, el]) => {
+        context.constraints[key] = el.checked;
+      });
+    };
+
+    const pushMessage = (role, text) => {
+      const div = document.createElement('div');
+      div.className = `bubble ${role}`;
+      div.textContent = text;
+      chatLogEl.appendChild(div);
+      chatLogEl.scrollTop = chatLogEl.scrollHeight;
+    };
+
+    const tryPlan = async () => {
+      errorEl.textContent = '';
+      syncContextFromForm();
+      const { origin, destination, depart, return: ret, total, adults, children, notes } = context;
+      const adultsCount = typeof adults === 'string' ? Number(adults.replace(/\D/g, '')) : adults;
+      const childrenCount = typeof children === 'string' ? Number(children.replace(/\D/g, '')) : children;
+      if (!origin || !destination) return;
+      if (total !== null && adultsCount !== null && childrenCount !== null && !Number.isNaN(adultsCount) && !Number.isNaN(childrenCount) && total !== adultsCount + childrenCount) {
+        errorEl.textContent = 'Total travelers must equal adults + children.';
         return;
       }
 
-      renderPlan(buildPlanCards(origin, destination, notes, date));
+      const travelerText = [
+        context.name ? `Traveler: ${context.name}` : null,
+        context.age ? `Age ${context.age}` : null,
+        total ? `Total ${total}` : null,
+        adultsCount !== null && !Number.isNaN(adultsCount) ? `Adults ${adultsCount}` : null,
+        childrenCount !== null && !Number.isNaN(childrenCount) ? `Children ${childrenCount}` : null,
+      ].filter(Boolean).join(' | ') || 'Traveler details pending';
+
+      const constraintText = constraintsSummary();
+      const cards = buildPlanCards(origin, destination, [notes, constraintText].filter(Boolean).join(' | '), depart, ret, travelerText);
+      renderPlan(cards);
+      renderOptions();
       recsEl.innerHTML = '<div class="note">Fetching plan...</div>';
 
       try {
         const resp = await fetch('http://localhost:8000/plan', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ origin, destination, date, notes }),
+          body: JSON.stringify({ ...context, return: ret }),
         });
         if (!resp.ok) throw new Error(`API error ${resp.status}`);
         const data = await resp.json();
         renderRecs(data);
+        renderOptions();
       } catch (err) {
         errorEl.textContent = 'Failed to fetch plan. Start backend at http://localhost:8000.';
         recsEl.innerHTML = '';
       }
     };
 
-    document.getElementById('plan-btn').addEventListener('click', callPlanApi);
+    const handleChat = () => {
+      const message = chatInputEl.value.trim();
+      if (!message) return;
+      pushMessage('user', message);
+      chatInputEl.value = '';
+
+      const unanswered = questionOrder.find(q => {
+        const val = context[q.key];
+        return val === null || val === undefined || val === '' || Number.isNaN(val);
+      });
+
+      if (unanswered) {
+        const { key } = unanswered;
+        if (['total', 'adults', 'children', 'age'].includes(key)) {
+          const num = Number(message);
+          context[key] = Number.isNaN(num) ? message : num;
+        } else if (['budgetMin', 'budgetMax'].includes(key)) {
+          context[key] = message.replace(/\D/g, '') || message;
+        } else {
+          context[key] = message;
+        }
+      } else {
+        context.notes = context.notes ? `${context.notes}; ${message}` : message;
+      }
+
+      // Mirror into form fields for visibility
+      nameEl.value = context.name;
+      ageEl.value = context.age || '';
+      originEl.value = context.origin;
+      destEl.value = context.destination;
+      departEl.value = context.depart || '';
+      returnEl.value = context.return || '';
+      totalEl.value = context.total || '';
+      adultsEl.value = context.adults || '';
+      childrenEl.value = context.children || '';
+      notesEl.value = context.notes;
+      budgetMinEl.value = context.budgetMin;
+      budgetMaxEl.value = context.budgetMax;
+      budgetLabelEl.textContent = context.budgetMax ? `INR ${context.budgetMax}` : 'INR 5000';
+      if (context.budgetMax) {
+        budgetSliderEl.value = Math.min(Math.max(Number(context.budgetMax), budgetSliderEl.min), budgetSliderEl.max);
+      }
+
+      renderChips();
+      renderOptions();
+      const next = nextQuestion();
+      if (next) {
+        pushMessage('agent', next);
+        renderQuickReplies();
+      } else {
+        pushMessage('agent', 'Great, generating your journey plan now.');
+        tryPlan();
+      }
+    };
+
+    document.getElementById('plan-btn').addEventListener('click', tryPlan);
+    sendBtn.addEventListener('click', handleChat);
+    chatInputEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleChat();
+      }
+    });
+
+    const syncBudgetFromSlider = () => {
+      const value = Number(budgetSliderEl.value);
+      context.budgetMax = String(value);
+      if (!context.budgetMin) context.budgetMin = String(Math.max(0, value - 2000));
+      budgetMaxEl.value = context.budgetMax;
+      budgetMinEl.value = context.budgetMin;
+      budgetLabelEl.textContent = `INR ${context.budgetMax}`;
+      renderChips();
+      renderOptions();
+    };
+
+    budgetSliderEl.addEventListener('input', syncBudgetFromSlider);
+    budgetMinEl.addEventListener('change', () => {
+      context.budgetMin = budgetMinEl.value;
+      renderChips();
+      renderOptions();
+    });
+    budgetMaxEl.addEventListener('change', () => {
+      context.budgetMax = budgetMaxEl.value;
+      budgetSliderEl.value = Math.min(Math.max(Number(context.budgetMax), budgetSliderEl.min), budgetSliderEl.max);
+      renderChips();
+      renderOptions();
+    });
+
+    Object.entries(constraintBoxes).forEach(([key, el]) => {
+      el.addEventListener('change', () => {
+        context.constraints[key] = el.checked;
+        renderChips();
+        renderOptions();
+        tryPlan();
+      });
+    });
+
+    const buildExportText = () => {
+      return [
+        `Trip: ${context.origin || 'TBD'} -> ${context.destination || 'TBD'}`,
+        `Dates: ${context.depart || 'TBD'} to ${context.return || 'TBD'}`,
+        `Travelers: ${context.total || 'TBD'} (Adults ${context.adults || 0}, Children ${context.children || 0})`,
+        `Budget: ${context.budgetMin || '?'} - ${context.budgetMax || '?'}`,
+        `Stay: ${context.accommodation || 'TBD'}`,
+        `Transport: ${context.transport || 'TBD'}`,
+        `Activities: ${context.activities || 'TBD'}`,
+        constraintsSummary(),
+        `Notes: ${context.notes || 'None'}`,
+      ].filter(Boolean).join('\n');
+    };
+
+    const downloadBlob = (content, filename, type) => {
+      const blob = new Blob([content], { type });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    };
+
+    pdfBtn.addEventListener('click', () => {
+      const text = buildExportText();
+      downloadBlob(text, 'trip-summary.txt', 'text/plain'); // placeholder for PDF
+      exportStatusEl.textContent = 'Downloaded summary (text placeholder for PDF).';
+    });
+
+    icsBtn.addEventListener('click', () => {
+      const start = context.depart || '20250101';
+      const end = context.return || start;
+      const ics = [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'BEGIN:VEVENT',
+        `DTSTART;VALUE=DATE:${start.replace(/-/g, '')}`,
+        `DTEND;VALUE=DATE:${end.replace(/-/g, '')}`,
+        `SUMMARY:Trip ${context.origin || ''} -> ${context.destination || ''}`,
+        'DESCRIPTION:Generated by Journey Planner mock.',
+        'END:VEVENT',
+        'END:VCALENDAR',
+      ].join('\n');
+      downloadBlob(ics, 'trip.ics', 'text/calendar');
+      exportStatusEl.textContent = 'ICS file downloaded.';
+    });
+
+    linkBtn.addEventListener('click', async () => {
+      const summary = buildExportText();
+      const fakeLink = `https://example.com/share?trip=${encodeURIComponent(summary.slice(0, 50))}`;
+      try {
+        await navigator.clipboard.writeText(fakeLink);
+        exportStatusEl.textContent = 'Shareable link copied (placeholder).';
+      } catch (_) {
+        exportStatusEl.textContent = 'Copy failed; placeholder link shown here: ' + fakeLink;
+      }
+    });
+
+    syncBudgetFromSlider();
     renderPlan([{ title: 'Awaiting input', body: 'Add start and end points, then plan the journey.' }]);
+    const firstQ = nextQuestion();
+    if (firstQ) {
+      pushMessage('agent', firstQ);
+      renderQuickReplies();
+    }
+    renderOptions();
   </script>
 </body>
 </html>
