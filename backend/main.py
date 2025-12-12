@@ -20,6 +20,9 @@ class JourneyRequest(BaseModel):
     date: Optional[str] = Field(None, description="Preferred departure date (YYYY-MM-DD)")
     notes: Optional[str] = Field(None, description="Preferences/constraints")
 
+    class Config:
+        extra = "ignore"  # allow UI to send richer context without failing validation
+
 class Activity(BaseModel):
     name: str
     price: Optional[float] = None

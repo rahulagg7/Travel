@@ -489,6 +489,8 @@
       chatLogEl.scrollTop = chatLogEl.scrollHeight;
     };
 
+    const apiBase = window.location.origin.includes('localhost') ? 'http://localhost:8000' : window.location.origin;
+
     const tryPlan = async () => {
       errorEl.textContent = '';
       syncContextFromForm();
@@ -516,7 +518,7 @@
       recsEl.innerHTML = '<div class="note">Fetching plan...</div>';
 
       try {
-        const resp = await fetch('http://localhost:8000/plan', {
+        const resp = await fetch(`${apiBase}/plan`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ...context, return: ret }),
@@ -526,7 +528,7 @@
         renderRecs(data);
         renderOptions();
       } catch (err) {
-        errorEl.textContent = 'Failed to fetch plan. Start backend at http://localhost:8000.';
+        errorEl.textContent = `Failed to fetch plan. Ensure backend is reachable at ${apiBase}.`;
         recsEl.innerHTML = '';
       }
     };
