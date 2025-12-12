@@ -1,12 +1,11 @@
-# Travel Inputs
-- Traveler name: ____________________
-- Age: ______
-- Purpose/type of trip: <business | vacation>
-- Budget: min ______, max ______
-- Duration of the trip: ______ days
+# Travel Inputs (fill only what you know)
+- Purpose/type of trip: business | vacation | other ______
+- Budget range: min ______, max ______
+- Duration: ______ days (or dates below)
 - Departure date: YYYY-MM-DD
 - Arrival/return date: YYYY-MM-DD
 - Travelers: total ______ | adults ______ | children ______ (list ages)
 - Accommodation type: hotel | hostel | airbnb | other ______
 - Transportation type: bus | car | train | flight | other ______
-- Activities: list key interests (e.g., museums, hiking, food tours, nightlife)
+- Activities/interests: e.g., museums, hiking, food tours, nightlife
+- Special notes: visas, accessibility, dietary, pace, must-see/avoid

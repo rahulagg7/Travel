@@ -30,9 +30,9 @@ class Recommendation(BaseModel):
     accommodation_price: Optional[float] = None
     transport: str
     transport_price: Optional[float] = None
-    activities: List[Activity] = []
+    activities: List[Activity] = Field(default_factory=list)
     total_estimate: Optional[float] = None
-    sources_used: List[str] = []
+    sources_used: List[str] = Field(default_factory=list)
 
 @app.post("/plan", response_model=Recommendation)
 async def plan_trip(payload: JourneyRequest) -> Recommendation:

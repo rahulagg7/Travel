@@ -48,7 +48,7 @@ async def _routes_makemytrip(origin: str, destination: str, date: str | None) ->
         {
             "source": "makemytrip",
             "mode": "flight",
-            "summary": f"{origin}->{destination} non‑stop (MakeMyTrip)",
+            "summary": f"{origin}->{destination} non-stop (MakeMyTrip)",
             "price": 220,
         }
     ]
@@ -160,11 +160,57 @@ async def _gather_with_concurrency(
                 data = await coro
                 results.extend(data)
             except Exception:
-                # In early versions we fail soft per‑site and keep the rest.
+                # In early versions we fail soft per-site and keep the rest.
                 return
 
     await asyncio.gather(*[_run(c) for c in coros])
     return results
+
+
+def _placeholder_route_scraper(name: str) -> RouteScraper:
+    async def _scrape(origin: str, destination: str, date: str | None) -> List[Dict[str, Any]]:
+        return [
+            {
+                "source": name,
+                "mode": "mixed",
+                "summary": f"{origin}->{destination} option from {name}",
+                "price": 150,
+            }
+        ]
+    return _scrape
+
+
+def _placeholder_stay_scraper(name: str) -> StayScraper:
+    async def _scrape(destination: str) -> List[Dict[str, Any]]:
+        return [
+            {
+                "source": name,
+                "name": f"{destination} stay via {name}",
+                "price": 250,
+                "rating": 4.0,
+            }
+        ]
+    return _scrape
+
+
+def _placeholder_activity_scraper(name: str) -> ActivityScraper:
+    async def _scrape(destination: str) -> List[Dict[str, Any]]:
+        return [
+            {"source": name, "name": f"{destination} highlights by {name}", "price": 40},
+        ]
+    return _scrape
+
+
+# Fill in placeholder scrapers for providers listed in config.TOP_SITES that do
+# not yet have dedicated implementations. This keeps aggregation logic working
+# while real Playwright flows are added incrementally.
+for name in config.TOP_SITES:
+    if name not in ROUTE_SCRAPERS:
+        ROUTE_SCRAPERS[name] = _placeholder_route_scraper(name)
+    if name not in STAY_SCRAPERS:
+        STAY_SCRAPERS[name] = _placeholder_stay_scraper(name)
+    if name not in ACTIVITY_SCRAPERS:
+        ACTIVITY_SCRAPERS[name] = _placeholder_activity_scraper(name)
 
 
 async def scrape_routes(origin: str, destination: str, date: str | None = None) -> List[Dict[str, Any]]:
